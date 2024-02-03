@@ -9,10 +9,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Scanner;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.JOptionPane;
 
 /**
@@ -29,7 +34,6 @@ public class Home extends javax.swing.JFrame {
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
-
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -284,11 +288,11 @@ public class Home extends javax.swing.JFrame {
     }//GEN-LAST:event_btn_salvarKeyPressed
 
     private void btn_salvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_salvarActionPerformed
-         if (emptyFields() == true) {
+        if (emptyFields() == true) {
         } else if (emptyFields() == false && validateFields() == false) {
-        write_Paciente();
-        setFrame_PacienteOutput();
-        read_Paciente();
+            write_Paciente();
+            setFrame_PacienteOutput();
+            read_Paciente();
         }
     }//GEN-LAST:event_btn_salvarActionPerformed
 
@@ -309,9 +313,9 @@ public class Home extends javax.swing.JFrame {
     }//GEN-LAST:event_input_pressaoDiastolicaActionPerformed
 
     private void checkbox_estresseKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_checkbox_estresseKeyPressed
-        if(evt.getKeyCode() == KeyEvent.VK_ENTER && !checkbox_estresse.isSelected()){
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER && !checkbox_estresse.isSelected()) {
             checkbox_estresse.setSelected(true);
-        }else if(evt.getKeyCode() == KeyEvent.VK_ENTER && checkbox_estresse.isSelected()){
+        } else if (evt.getKeyCode() == KeyEvent.VK_ENTER && checkbox_estresse.isSelected()) {
             checkbox_estresse.setSelected(false);
         }
     }//GEN-LAST:event_checkbox_estresseKeyPressed
@@ -368,7 +372,7 @@ public class Home extends javax.swing.JFrame {
     private javax.swing.JLabel label_pressaoSistolica;
     private javax.swing.JTextArea textArea_pacieneOutput;
     // End of variables declaration//GEN-END:variables
-    
+
     private void setFrame_PacienteOutput() {
         frame_pacienteOutput.setVisible(true);
         frame_pacienteOutput.setLocationRelativeTo(null);
@@ -390,11 +394,19 @@ public class Home extends javax.swing.JFrame {
     private void createDir() {
 
         try {
+
             File dir = new File("C:\\NutriSoft_Cardio");
-            dir.mkdir();
+
+            if (!dir.exists()) {
+                dir.mkdir();
+            }
 
             File file = new File(dir + "paciente_pressao.txt");
-            file.createNewFile();
+
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+
         } catch (IOException e) {
         }
     }
@@ -403,42 +415,37 @@ public class Home extends javax.swing.JFrame {
 
         createDir();
 
-        String data = "Data:" + input_data.getText() + "\nHora:" + input_hora.getText() + "\nPressão Sistólica:" + input_pressaoSistolica.getText() + "\nPressão Diastólica:" + input_pressaoDiastolica.getText() + "\nSob Estresse:" + getCheckbox();
+        String data = "-------------------------------\nData:" + input_data.getText() + "\nHora:" + input_hora.getText() + "\nPressão Sistólica:" + input_pressaoSistolica.getText() + "\nPressão Diastólica:" + input_pressaoDiastolica.getText() + "\nSob Estresse:" + getCheckbox() + "\n";
 
         try {
-            OutputStream output = new FileOutputStream("C:\\NutriSoft_Cardio\\paciente_pressao.txt");
-
-            byte[] dataBytes = data.getBytes();
-
-            output.write(dataBytes);
-
+            FileWriter Writer = new FileWriter("C:\\NutriSoft_Cardio\\paciente_pressao.txt", true);
+            Writer.write(data);
+            Writer.close();
             JOptionPane.showMessageDialog(rootPane, "Informações gravadas com sucesso.");
-            output.close();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(rootPane, e.getStackTrace());
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(rootPane, "Erro ao gravar arquivo.\nERRO:" + e.getMessage());
         }
     }
-    
-    private void read_Paciente(){
-         byte[] array = new byte[256];
 
-          try {
+    private void read_Paciente() {
+
+        try {
             InputStream input = new FileInputStream("C:\\NutriSoft_Cardio\\paciente_pressao.txt");
 
-            System.out.println("Bytes disponíveis no arquivo " + input.available());
+            byte[] array = input.readAllBytes();
 
             input.read(array);
-            
+
             String data = new String(array);
-            textArea_pacieneOutput.setText(data);
+            textArea_pacieneOutput.setText(data + "\n");
 
             input.close();
-            
-          } catch (Exception e) {
-              
-          }
+
+        } catch (Exception e) {
+
+        }
     }
-    
+
     private boolean emptyFields() {
 
         boolean empty = true;
@@ -465,19 +472,19 @@ public class Home extends javax.swing.JFrame {
 
         return empty;
     }
-    
-     private boolean validateFields() {
+
+    private boolean validateFields() {
         boolean validate = true;
 
         try {
             if (!input_data.getText().matches("[0-9]{2}[/][0-9]{2}[/][0-9]{4}")) {
-                JOptionPane.showMessageDialog(rootPane, "Formato de data inválida.\nDigite a data no formato dd/mm/aaaa.");
+                JOptionPane.showMessageDialog(rootPane, "Formato de data inválida!\nDigite a data no formato dd/mm/aaaa.");
             } else if (!input_hora.getText().matches("[0-9]{2}[:][0-9]{2}")) {
-                JOptionPane.showMessageDialog(rootPane, "Formato de hora inválida.\nDigite a hora no formato hh:mm");
+                JOptionPane.showMessageDialog(rootPane, "Formato de hora inválida!\nDigite a hora no formato hh:mm.");
             } else if (!input_pressaoSistolica.getText().matches("[0-9]*")) {
-                JOptionPane.showMessageDialog(rootPane, "Formato de pressão Sistólica inválida.\nDigite apenas números");
-            }else if (!input_pressaoDiastolica.getText().matches("[0-9]*")) {
-                JOptionPane.showMessageDialog(rootPane, "Formato de pressão Diastólica inválida.\nDigite apenas números");
+                JOptionPane.showMessageDialog(rootPane, "Formato de pressão Sistólica inválida!\nDigite apenas números.");
+            } else if (!input_pressaoDiastolica.getText().matches("[0-9]*")) {
+                JOptionPane.showMessageDialog(rootPane, "Formato de pressão Diastólica inválida!\nDigite apenas números.");
             } else {
                 validate = false;
             }
@@ -486,7 +493,3 @@ public class Home extends javax.swing.JFrame {
         return validate;
     }
 }
-
-
-
-
